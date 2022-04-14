@@ -1,0 +1,152 @@
+criar vpc
+
+criar subnets
+
+criar internet gateway
+
+editar DNS hostnames dentro da vpc
+
+editar dns resolution para conferir
+
+route tables
+saidas
+configurar para ter acesso de dentro para fora
+
+configurar security group
+de fora pra dentro
+quais maquinas serão acessiveis para o mundo externo
+por ips ou todos
+inbound se alguem esta acessando
+outbound se a maquina estiver tentando acessar fora
+o inbound interno pode ser o grupo de segurança ao inves de ip ... macete
+
+criar ec2
+
+criar rds
+
+configurar dominio
+
+configurar ssl
+
+INFRA
+CONFIGURAÇÃO MAQUINAS
+AUTO SCALE
+CONFIGURAÇÃO DE DNS
+SEGURANÇA
+
+ESTEIRA DE DEPLOY
+CIRCLE CI / GITHUBACTION
+
+INSTALAÇÃO DO CESS NA AWS
+SUBIR O DOCKER
+
+IMPLEMENTAÇÃO DA ASSINATURA NA API
+CRIAR OS METODOS
+
+AJUSTES FINOS DA API
+
+SERVIDOR DA API DO KLIVUS
+4 MAQUINAS
+
+SERVIDOR RODA FRONTEND
+4 MAQUINAS
+
+SERVIDOR RODAR API DA SOLUTI
+4 MAQUINAS
+
+$ sudo apt update && apt upgrade
+$ mkdir projects
+$ cd projects/
+$ git clone https://github.com/danlisboa/test-server.git
+$ cd test-server/
+$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+$ source ~/.bashrc
+$ nvm install node --lts
+$ npm install
+$ npm start
+
+sudo apt update && sudo apt upgrade
+sudo apt-get install stress
+stress-c 12
+
+---
+
+Importar certificado
+pegar chave do certificado para o dominio na godaddy
+acessar https://csrgenerator.com/
+solicitar chave privada na godaddy
+no certificate mananger da aws fazer importar o certificado
+no load balancer remover portas 80 e adicionar porta 443
+Adicionar uma action forward para o target group da api
+selecionar em Default SSL/TLS certificate o certificado importado da godaddy
+
+======================================
+TODO
+
+SPRINT ENTREGA 22/04
+
+Infraestrutura
+VPC
+SG
+LOAD BALANCE
+CONFI DOMINIO
+CONF SG HTTPS
+CONF CERTIFICADO
+CONF ESCALABILIDADE
+1 (semana)
+
+DEPLOY AUTOMATIZADO
+DOCKER API
+DOCKER DO FRONT
+CODE COMMIT
+GIT ACTION
+CIRCLE CI
+13/04
+
+INSTALAÇÃO DO CESS NA AWS (API SOLUTI)
+SUBIR O DOCKER
+14/04
+
+IMPLEMENTAÇÃO DA ASSINATURA NA API
+CRIAR OS METODOS
+CRIAR OS METODOS
+http://localhost:8080/signature-service
+16/04
+
+AJUSTES FINOS DA API (JA ESTÃO NO TRELLO)
+20/04
+
+========================
+FRONT END
+LOGIN OK
+CADASTRO (parcial)
+Prescrição integração
+Modais
+Paciente
+Dr.
+Assinatura digital
+Ultimas prescrições
+Modelos
+Home
+assinatura digital
+mudança de layout tela de cadastro / login
+
+LAYOUT: 0%
+INTEGRAÇÃO: 0%
+
+===========
+
+FARMACIA
+
+===========
+
+Marcar reunião com SOLUTI
+
+============
+
+# Abertura de empresa na contabilizei após primeiro deploy
+
+api.klivus.tech
+klivus.tech
+
+soluti.klivus.tech
