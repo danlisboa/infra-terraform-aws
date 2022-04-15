@@ -76,9 +76,9 @@ resource "aws_route_table_association" "rta_subnet_public" {
 }
 
 //CREATE SECURITY GROUP
-resource "aws_security_group" "AppSgApi" {
-  name        = "sgApi${var.appName}"
-  description = "Security group api node"
+resource "aws_security_group" "AppSecurityGroup" {
+  name        = "sgApp${var.appName}"
+  description = "Security group app node"
   vpc_id      = aws_vpc.AppVPC.id
 
   ingress {
@@ -118,7 +118,7 @@ resource "aws_security_group" "AppSgApi" {
   ]
 
   tags = {
-    Name = "security-group-api"
+    Name = "app-security-group"
   }
 }
 
@@ -140,7 +140,7 @@ resource "aws_security_group" "AppSgDataBase" {
     to_port         = 5432
     protocol        = "tcp"
     description     = "sg-api-${var.appName}"
-    security_groups = [aws_security_group.AppSgApi.id]
+    security_groups = [aws_security_group.AppSecurityGroup.id]
   }
 
   egress {
@@ -153,7 +153,7 @@ resource "aws_security_group" "AppSgDataBase" {
 
   depends_on = [
     aws_vpc.AppVPC,
-    aws_security_group.AppSgApi
+    aws_security_group.AppSecurityGroup
   ]
 
   tags = {
@@ -163,16 +163,16 @@ resource "aws_security_group" "AppSgDataBase" {
 
 //ROLE S3
 resource "aws_iam_instance_profile" "readS3role" {
-  name = "readS3role"
   role = var.roleNameAccessS3
+  name = "read-s3-role-v2"
 }
 
 //CREATE EC2
-resource "aws_instance" "AppInstance" {
+resource "aws_instance" "ApiInstance" {
   ami                    = var.instance_ami
   instance_type          = var.instance_type
   subnet_id              = element(aws_subnet.AppPublicSubnet.*.id, 0)
-  vpc_security_group_ids = [aws_security_group.AppSgApi.id]
+  vpc_security_group_ids = [aws_security_group.AppSecurityGroup.id]
   key_name               = var.key_name
   user_data              = file("./init.sh")
   iam_instance_profile   = aws_iam_instance_profile.readS3role.id
@@ -180,7 +180,7 @@ resource "aws_instance" "AppInstance" {
 
   depends_on = [
     aws_subnet.AppPublicSubnet,
-    aws_security_group.AppSgApi
+    aws_security_group.AppSecurityGroup
   ]
 
   tags = {
@@ -188,14 +188,14 @@ resource "aws_instance" "AppInstance" {
   }
 }
 
-resource "aws_launch_configuration" "AppLaunch" {
+resource "aws_launch_configuration" "ApiLaunch" {
   name_prefix = "api-launch-${var.appName}"
 
   image_id      = var.instance_ami # Amazon Linux 2 AMI (HVM), SSD Volume Type
   instance_type = var.instance_type
   key_name      = var.key_name
 
-  security_groups             = [aws_security_group.AppSgApi.id]
+  security_groups             = [aws_security_group.AppSecurityGroup.id]
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.readS3role.id
 
@@ -206,8 +206,8 @@ resource "aws_launch_configuration" "AppLaunch" {
   }
 }
 
-resource "aws_security_group" "AppLoadBalanceSG" {
-  name        = "sgLoadBalanceApp"
+resource "aws_security_group" "ApiLBGroup" {
+  name        = "ApiSgLoadBalance"
   description = "Allow HTTP and HTTPS traffic to instances through Elastic Load Balancer"
   vpc_id      = aws_vpc.AppVPC.id
 
@@ -244,22 +244,22 @@ resource "aws_security_group" "AppLoadBalanceSG" {
   }
 }
 
-resource "aws_lb" "AppLoadBalance" {
-  name               = "lb-app-${var.appName}"
+resource "aws_lb" "ApiLoadBalance" {
+  name               = "api-lb-app-${var.appName}"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.AppLoadBalanceSG.id]
+  security_groups    = [aws_security_group.ApiLBGroup.id]
   subnets            = [for s in aws_subnet.AppPublicSubnet : s.id]
   lifecycle {
     create_before_destroy = true
   }
   tags = {
-    Environment = "lb-app-${var.appName}"
+    Environment = "lb-api-${var.appName}"
   }
 }
 
-resource "aws_autoscaling_group" "scalingGroup" {
-  name = "${aws_launch_configuration.AppLaunch.name}-scaling-group"
+resource "aws_autoscaling_group" "ApiScalingGroup" {
+  name = "api-${aws_launch_configuration.ApiLaunch.name}-scaling-group"
 
   min_size         = 1
   max_size         = 4
@@ -268,12 +268,12 @@ resource "aws_autoscaling_group" "scalingGroup" {
   health_check_type = "ELB"
 
   /*load_balancers = [
-    aws_lb.AppLoadBalance.id
+    aws_lb.ApiLoadBalance.id
   ]*/
 
-  target_group_arns = [aws_lb_target_group.AppLbTargetGroup.arn]
+  target_group_arns = [aws_lb_target_group.ApiLBTargetGroup.arn]
 
-  launch_configuration = aws_launch_configuration.AppLaunch.name
+  launch_configuration = aws_launch_configuration.ApiLaunch.name
 
   enabled_metrics = [
     "GroupMinSize",
@@ -294,22 +294,22 @@ resource "aws_autoscaling_group" "scalingGroup" {
 
   tag {
     key                 = "Name"
-    value               = "instance-api-scaled"
+    value               = "scaled-instance-api"
     propagate_at_launch = true
   }
 
 }
 
-resource "aws_autoscaling_policy" "web_policy_up" {
-  name                   = "web-policy-up"
+resource "aws_autoscaling_policy" "api_policy_up" {
+  name                   = "api-policy-up"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.scalingGroup.name
+  autoscaling_group_name = aws_autoscaling_group.ApiScalingGroup.name
 }
 
-resource "aws_cloudwatch_metric_alarm" "web_cpu_alarm_up" {
-  alarm_name          = "web-cpu-alarm-up"
+resource "aws_cloudwatch_metric_alarm" "api_cpu_alarm_up" {
+  alarm_name          = "api-cpu-alarm-up"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -319,23 +319,23 @@ resource "aws_cloudwatch_metric_alarm" "web_cpu_alarm_up" {
   threshold           = "60"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.scalingGroup.name
+    AutoApiScalingGroupName = aws_autoscaling_group.ApiScalingGroup.name
   }
 
   alarm_description = "This metric monitor EC2 instance CPU utilization"
-  alarm_actions     = [aws_autoscaling_policy.web_policy_up.arn]
+  alarm_actions     = [aws_autoscaling_policy.api_policy_up.arn]
 }
 
-resource "aws_autoscaling_policy" "web_policy_down" {
-  name                   = "web-policy-down"
+resource "aws_autoscaling_policy" "api_policy_down" {
+  name                   = "api-policy-down"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.scalingGroup.name
+  autoscaling_group_name = aws_autoscaling_group.ApiScalingGroup.name
 }
 
-resource "aws_cloudwatch_metric_alarm" "web_cpu_alarm_down" {
-  alarm_name          = "web-cpu-alarm-down"
+resource "aws_cloudwatch_metric_alarm" "api_cpu_alarm_down" {
+  alarm_name          = "api-cpu-alarm-down"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -345,15 +345,15 @@ resource "aws_cloudwatch_metric_alarm" "web_cpu_alarm_down" {
   threshold           = "10"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.scalingGroup.name
+    AutoApiScalingGroupName = aws_autoscaling_group.ApiScalingGroup.name
   }
 
   alarm_description = "This metric monitor EC2 instance CPU utilization"
-  alarm_actions     = [aws_autoscaling_policy.web_policy_down.arn]
+  alarm_actions     = [aws_autoscaling_policy.api_policy_down.arn]
 }
 
-resource "aws_lb_target_group" "AppLbTargetGroup" {
-  name     = "lb-target-group-3000"
+resource "aws_lb_target_group" "ApiLBTargetGroup" {
+  name     = "api-lb-target-group-3000"
   port     = 3000
   protocol = "HTTP"
   vpc_id   = aws_vpc.AppVPC.id
@@ -368,8 +368,8 @@ resource "aws_lb_target_group" "AppLbTargetGroup" {
   }
 }
 
-resource "aws_lb_listener" "ops_alb_listener_80" {
-  load_balancer_arn = aws_lb.AppLoadBalance.arn
+resource "aws_lb_listener" "ApiListenerLB_80" {
+  load_balancer_arn = aws_lb.ApiLoadBalance.arn
   port              = "80"
   protocol          = "HTTP"
   #certificate_arn   = "${var.elk_cert_arn}"
@@ -384,8 +384,8 @@ resource "aws_lb_listener" "ops_alb_listener_80" {
   }
 }
 
-resource "aws_lb_listener" "ops_alb_listener_443" {
-  load_balancer_arn = aws_lb.AppLoadBalance.arn
+resource "aws_lb_listener" "ApiListenerLB_443" {
+  load_balancer_arn = aws_lb.ApiLoadBalance.arn
   port              = "443"
   protocol          = "HTTPS"
   #certificate_arn   = "${var.elk_cert_arn}"
@@ -393,18 +393,23 @@ resource "aws_lb_listener" "ops_alb_listener_443" {
 
 
   default_action {
-    target_group_arn = aws_lb_target_group.AppLbTargetGroup.arn
+    target_group_arn = aws_lb_target_group.ApiLBTargetGroup.arn
     type             = "forward"
   }
 }
 
-resource "aws_lb_target_group_attachment" "schemaRegistryTgAttach" {
-  target_group_arn = aws_lb_target_group.AppLbTargetGroup.arn
-  target_id        = aws_instance.AppInstance.id
+resource "aws_lb_target_group_attachment" "ApiSchemaRegistryTgAttach" {
+  target_group_arn = aws_lb_target_group.ApiLBTargetGroup.arn
+  target_id        = aws_instance.ApiInstance.id
   port             = 3000
 }
 
 /* Manualmente
-  - configurar route53
-  - configurar codedeploy e pipeline
+  - route53 (DNS)
+    - set load balance group
+
+  - Aplicativo grupo de implantação (CI/CD)
+      - set load balance scale group
+
+
 */

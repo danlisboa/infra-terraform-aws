@@ -36,7 +36,7 @@ cd /home/ubuntu
 sudo rm -rf projects/
 sudo mkdir projects
 cd projects/
-sudo git clone https://TOKEN@github.com/danlisboa/test-server.git .
+sudo git clone https://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@github.com/danlisboa/test-site.git .
 
 sudo service codedeploy-agent status
 echo "End Creating projects"

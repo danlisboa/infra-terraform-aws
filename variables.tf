@@ -1,11 +1,11 @@
 variable "appName" {
-  default = "YOUR-APP"
+  default = "APP-NAME"
   type    = string
 }
 
 variable "project" {
   description = "Name app"
-  default     = "YOUR-APP"
+  default     = "APP-NAME"
   type        = string
 }
 
@@ -35,7 +35,7 @@ variable "vpc_cidr" {
 
 variable "vpc_name" {
   description = "VPC name"
-  default     = "app-YOUR-APP-vpc"
+  default     = "vpc-app-APP-NAME"
   type        = string
 }
 
@@ -49,13 +49,13 @@ variable "subnet_azs" {
 
 variable "internet_gateway_name" {
   description = "Internet gateway name"
-  default     = "ig-YOUR-APP"
+  default     = "ig-APP-NAME"
   type        = string
 }
 
 variable "route_table_name" {
   description = "Route table name"
-  default     = "rt-public-YOUR-APP"
+  default     = "rt-public-APP-NAME"
   type        = string
 }
 
@@ -71,7 +71,7 @@ variable "instance_type" {
 
 variable "key_name" {
   description = "key pem aws"
-  default     = "YOUR-APP"
+  default     = "APP-NAME"
 }
 
 variable "certificate_arn" {
