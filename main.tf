@@ -99,7 +99,7 @@ resource "aws_security_group" "AppSecurityGroup" {
 
   ingress {
     from_port   = 3000
-    to_port     = 3001
+    to_port     = 3002
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "sg com acesso http qualquer ip"
@@ -164,17 +164,27 @@ resource "aws_security_group" "AppSgDataBase" {
 //ROLE S3
 resource "aws_iam_instance_profile" "readS3role" {
   role = var.roleNameAccessS3
-  name = "read-s3-role-v2"
+  name = "read-s3-role-v2x"
+}
+
+data "template_file" "init" {
+  template = file("init-api.sh.tpl")
+
+  vars = {
+    varEnv      = var.EnvApi,
+    repo        = var.repo,
+    installRuby = var.installRuby
+  }
 }
 
 //CREATE EC2
 resource "aws_instance" "ApiInstance" {
   ami                    = var.instance_ami
-  instance_type          = var.instance_type
+  instance_type          = var.instance_type_api
   subnet_id              = element(aws_subnet.AppPublicSubnet.*.id, 0)
   vpc_security_group_ids = [aws_security_group.AppSecurityGroup.id]
   key_name               = var.key_name
-  user_data              = file("./init.sh")
+  user_data              = data.template_file.init.rendered //file("./init.sh")
   iam_instance_profile   = aws_iam_instance_profile.readS3role.id
 
 
@@ -189,17 +199,17 @@ resource "aws_instance" "ApiInstance" {
 }
 
 resource "aws_launch_configuration" "ApiLaunch" {
+  image_id    = var.instance_ami # Amazon Linux 2 AMI (HVM), SSD Volume Type
   name_prefix = "api-launch-${var.appName}"
 
-  image_id      = var.instance_ami # Amazon Linux 2 AMI (HVM), SSD Volume Type
-  instance_type = var.instance_type
+  instance_type = var.instance_type_api
   key_name      = var.key_name
 
   security_groups             = [aws_security_group.AppSecurityGroup.id]
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.readS3role.id
 
-  user_data = file("./init.sh")
+  user_data = data.template_file.init.rendered //file("./init.sh")
 
   lifecycle {
     create_before_destroy = true
@@ -218,6 +228,7 @@ resource "aws_security_group" "ApiLBGroup" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  /* @todo voltar quando obtiver o certificado
   ingress {
     from_port   = 443
     to_port     = 443
@@ -230,7 +241,7 @@ resource "aws_security_group" "ApiLBGroup" {
     to_port          = 443
     protocol         = "tcp"
     ipv6_cidr_blocks = ["::/0"]
-  }
+  }*/
 
   egress {
     from_port   = 0
@@ -261,9 +272,9 @@ resource "aws_lb" "ApiLoadBalance" {
 resource "aws_autoscaling_group" "ApiScalingGroup" {
   name = "api-${aws_launch_configuration.ApiLaunch.name}-scaling-group"
 
-  min_size         = 1
+  min_size         = 0
   max_size         = 4
-  desired_capacity = 1
+  desired_capacity = 0
 
   health_check_type = "ELB"
 
@@ -304,7 +315,7 @@ resource "aws_autoscaling_policy" "api_policy_up" {
   name                   = "api-policy-up"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 800
   autoscaling_group_name = aws_autoscaling_group.ApiScalingGroup.name
 }
 
@@ -314,7 +325,7 @@ resource "aws_cloudwatch_metric_alarm" "api_cpu_alarm_up" {
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "120"
+  period              = "600"
   statistic           = "Average"
   threshold           = "60"
 
@@ -330,7 +341,7 @@ resource "aws_autoscaling_policy" "api_policy_down" {
   name                   = "api-policy-down"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 800
   autoscaling_group_name = aws_autoscaling_group.ApiScalingGroup.name
 }
 
@@ -340,7 +351,7 @@ resource "aws_cloudwatch_metric_alarm" "api_cpu_alarm_down" {
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "120"
+  period              = "600"
   statistic           = "Average"
   threshold           = "10"
 
@@ -368,6 +379,20 @@ resource "aws_lb_target_group" "ApiLBTargetGroup" {
   }
 }
 
+//remover após obter o certificado
+resource "aws_lb_listener" "ApiListenerLB_80" {
+  load_balancer_arn = aws_lb.ApiLoadBalance.arn
+  port              = "80"
+  protocol          = "HTTP"
+  #certificate_arn   = "${var.elk_cert_arn}"
+
+  default_action {
+    target_group_arn = aws_lb_target_group.ApiLBTargetGroup.arn
+    type             = "forward"
+  }
+}
+
+/* retornar após obter certificado
 resource "aws_lb_listener" "ApiListenerLB_80" {
   load_balancer_arn = aws_lb.ApiLoadBalance.arn
   port              = "80"
@@ -397,6 +422,7 @@ resource "aws_lb_listener" "ApiListenerLB_443" {
     type             = "forward"
   }
 }
+*/
 
 resource "aws_lb_target_group_attachment" "ApiSchemaRegistryTgAttach" {
   target_group_arn = aws_lb_target_group.ApiLBTargetGroup.arn

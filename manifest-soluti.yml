@@ -1,0 +1,52 @@
+# Arquivo para deploy do CESS em produção.
+# VaultID - Soluções em criptografia e identidade.
+# 02/01/2019
+version: \"3\"
+services:
+  cess:
+    image: harbor.lab.vaultid.com.br/cess/cess:latest
+    depends_on:
+      - redis
+    restart: always
+    user: \"33\"
+    environment:
+      - \"clientIdMd=34301485000175\"
+      - \"clientSecretMd=gaphjanOc6\"
+      # Se necessário, edite apenas as variávies abaixo: #
+      - 'urlsMultiCloud={\"https:\/\/apihom.birdid.com.br\":{\"id\":\"SOLUTI\",\"client_id\":\"34301485000175\",\"client_secret\":\"gaphjanOc6\"},\"https:\/\/apicloudid.hom.vaultid.com.br\":{\"id\":\"VAULTID\",\"client_id\":\"34301485000175\",\"client_secret\":\"gaphjanOc6\"}}'
+      - \"signatureAdapter=MultiCloudAdapter\"
+      - \"cessUrl=http://localhost:8080\"
+      - \"APACHE_SSL=false\"
+      - \"tokenValidityMAX=6\"
+      - \"ttlCacheGeneric=21600\"
+      - \"ttlCacheTrust=21600\"
+      - \"lifetime=86400\"
+      - \"sleep=100\"
+      - \"limit=100\"
+      - \"MEMORY_LIMIT=4096M\"
+      - \"America/Sao_Paulo\"
+      - \"timezone=America/Sao_Paulo\"
+      - \"level=INFO\"
+      - \"redisHost=redis\"
+      - \"redisPort=6379\"
+
+    ports:
+      # Definir a PORTA_EXTERNA TCP pela qual o container será exposto na rede.
+      - 3002:8080
+    volumes:
+      - ./hom-truststore:/var/www/data/trust
+    #      - path_crt:/etc/apache2/cert/cert.pem
+    #      - path_key:/etc/apache2/cert/cert.key
+    #      - ./license:/var/www/data/license
+    networks:
+      - nw-cess
+  redis:
+    image: \"healthcheck/redis:alpine\"
+    restart: always
+    networks:
+      - nw-cess
+networks:
+  nw-cess:
+    driver: bridge
+    ipam:
+      driver: default

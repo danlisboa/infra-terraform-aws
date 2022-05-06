@@ -86,37 +86,41 @@ TODO
 SPRINT ENTREGA 22/04
 
 Infraestrutura
-VPC
-SG
-LOAD BALANCE
-CONFI DOMINIO
-CONF SG HTTPS
-CONF CERTIFICADO
-CONF ESCALABILIDADE
+ok VPC
+ok SG
+ok LOAD BALANCE
+ok CONFI DOMINIO
+ok CONF SG HTTPS
+ok CONF CERTIFICADO
+ok CONF ESCALABILIDADE
 1 (semana)
 
-DEPLOY AUTOMATIZADO
-DOCKER API
-DOCKER DO FRONT
-CODE COMMIT
-GIT ACTION
-CIRCLE CI
+ok DEPLOY AUTOMATIZADO
+ok DOCKER API
+ok DOCKER DO FRONT
+ok CODE COMMIT
+ok GIT ACTION
+ok CIRCLE CI
 13/04
 
-INSTALAÇÃO DO CESS NA AWS (API SOLUTI)
-SUBIR O DOCKER
+andamento INSTALAÇÃO DO CESS NA AWS (API SOLUTI)
+andamento SUBIR O DOCKER
 14/04
+29/04
 
-IMPLEMENTAÇÃO DA ASSINATURA NA API
-CRIAR OS METODOS
-CRIAR OS METODOS
+andamento IMPLEMENTAÇÃO DA ASSINATURA NA API
+andamento CRIAR OS METODOS
+andamento CRIAR OS METODOS
 http://localhost:8080/signature-service
 16/04
+29/04
 
 AJUSTES FINOS DA API (JA ESTÃO NO TRELLO)
 20/04
+29/04
 
 ========================
+
 FRONT END
 LOGIN OK
 CADASTRO (parcial)
@@ -150,3 +154,101 @@ api.klivus.tech
 klivus.tech
 
 soluti.klivus.tech
+
+REUNIÃO ESCOLA YASMIN - 05/05
+
+- carolina professora produção textual
+- bruna ingles
+- geraldo
+- carla ed. digital
+- paula história
+- sandra artes
+- sergio ed fisica
+- thais matematica
+- thiago geografia
+
+Karla cidania digital
+
+- curtir, compartilhar, comentar
+
+projeto barato sai caro
+
+- sobre drogas
+- prof douglas impacto das drogas no organismo
+- @todo
+  se o projeto de droga foi por conta dos acontecimentos dos alunos simulando uso de droga?
+  se tem choque de realidade?
+
+- em foco
+
+  - encontro de formação e convivencia
+  - refletir compartilhar pensar em ações que transformam o colégio atraves de informação
+  - atraves de dinamicas entender o desnenvolvimento pessoal
+  - bullyng, socialição, aprendizado, espiritualidade
+
+- Interdiciplinar /ingles
+
+  - brain storm
+  - cultura
+
+- Geografia
+
+  - apresentação de textos
+
+- Matematica e Ciencias
+
+  - pesquisa dirigida
+  - analise de dados variola e covid 19
+  - taxa de mortalidade, letalidade
+  - sintetizar a analise
+  - tudo dentro do ebook
+
+- História
+
+  - tolerancia e intolerancia
+  - religioes perseguições
+  - cristão perseguidos e perseguidores
+  - leitura obordando mulheres bruxas
+  - produziram um panfleto identificando grupos e porque devem ser respeitados
+  - indiginas, negros, religiosos
+
+- LP, PT (produção textual), ensino religioso
+
+  - o que é sincretismo religioso
+  - cronicas
+
+- Artes
+
+  - mosaico sobre o sincretismo
+
+- Educação Digital
+
+  - templates
+  - ilustrar o ebook
+  -
+
+- Educação física
+
+  - amarelinha africana
+  - pesquisa sobre e adicionar ao ebook
+
+- tema transversal 2 etapa
+
+  - saude, ciencia e tecnologia
+  - capsula do tempo daqui 10 anos
+
+- Estudo do meio
+
+  - não é passeio e sim trabalho de campo
+  - opcional
+  - tem custo
+
+- Plano de estudo
+
+  - Lição de casa
+  - Recuperação paralela
+    - explicação
+
+- Campanhasa ações solidárias
+  - lacre no lacre, tampinhas de amor, aacd
+  - alimento solidário
